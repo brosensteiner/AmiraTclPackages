@@ -1,5 +1,6 @@
 #################################################
 # shared tcl procedurs for Amira script-objects #
+# only easily reusable procedures are here      #
 #################################################
 
 package provide SharedProcs	1.0
