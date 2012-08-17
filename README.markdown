@@ -1,6 +1,6 @@
 # Tcl packages for my script-objects for Amira
 
-In order to get my Amira scipt-objects to work you must install this tcl packages.
+In order to get my Amira scipt-objects to work you must install this tcl packages. For working with Amira script-objects it is advisable to make a local amira directory (look in the online Amira documentation on how to do it).
 
 #Installation
 

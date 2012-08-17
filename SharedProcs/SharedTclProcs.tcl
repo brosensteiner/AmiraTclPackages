@@ -12,6 +12,15 @@ namespace eval ::SharedProcs {
     namespace export *;#all should be exported
 }
 
+#proc for returning only the name of the module extracted from $this
+proc ::SharedProcs::moduleName { } {
+	global this
+	return [string map { "\.scro" "" } $this]
+}
+#proc for returning the author name
+proc ::SharedProcs::theAuthor { name } {
+	return $name
+}
 
 proc ::SharedProcs::sayHello {} {
 	if { [catch {global moduleName}] != 1 } {
@@ -27,6 +36,18 @@ proc ::SharedProcs::say { something } {
 	}
 	echo "$moduleName: $something"
 }
+
+# this proc is cool :)
+# a sort of tcl lamda mapping implementation
+# has to be used like this: map {x {return [string length $x]:$x}} {a bb ccc dddd}
+proc ::SharedProcs::map {lambda list} {
+   set result {}
+   foreach item $list {
+      lappend result [apply $lambda $item]
+   }
+   return $result
+}
+
 # procedure which can add new parameters to a amira field. 1.arg: the field, 2.arg: a new Bundle, args: pairs of parameter/values (e.g. Color { 1 0 1 })
 proc ::SharedProcs::stampField { field theBundle args } {
 
@@ -91,6 +112,23 @@ proc ::SharedProcs::rotateObject { object evecPointAxis { degrees 180 } } {
 
 	upvar $object upvObject $evecPointAxis upvevecPointAxis
 	eval "$upvObject rotate $upvevecPointAxis $degrees"
+}
+
+# procedure which connects $this to modules in the pool when invoked.
+# default is HxSurface when no argument
+# module must implement "allEmptyConPorts" list, which holds all names of the not connected connectionPorts!!! 
+proc ::SharedProcs::autoConnectToAll { {moduleclass HxSurface} } {
+
+	global this allEmptyConPorts
+	
+	foreach item [$this connectionPorts] {
+		if { [$this $item isOfType "HxConnection"] } then { $this $item disconnect };#disconnects only HxConnection connection ports (e.g. not colormap port)
+	}
+	#(re)connects to all labelfields in pool: 
+	foreach item [all $moduleclass] {
+		$this [lindex $allEmptyConPorts 0] connect $item
+		$this compute
+	}
 }
 
 # procedure for extracting a bunch of values from an amira spreadsheet object generated from the ShapeAnalysis modul. :\
