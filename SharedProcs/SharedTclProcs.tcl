@@ -80,6 +80,32 @@ proc ::SharedProcs::hasPort {modul port} {
 	if { [lsearch [$myModule allPorts] $port] != -1 } then { return 1 } else { return 0 }
 }
 
+# procedure which creates moduleType and connects it with sourceName module and checks if connection is valid \
+  moduleName is the name of the module in the pool \
+  if moduleName module does not exist it also gets created in the pool \
+  function returns the name of the newly created module
+proc ::SharedProcs::createModuleAndConnectIfOkToSource { moduleType moduleName sourceName { conPortIndex 0 } } {
+	
+	# test if module is already in the pool and assigne the moduleToReturn variable as appropriate:
+	if { [lsearch [all $moduleType] $moduleName] == -1 } {
+		set moduleToReturn [create $moduleType $moduleName]
+		$moduleToReturn hideIcon;#set hideNewModules 1 does not work
+	} else {
+		set moduleToReturn $moduleName
+	}
+	# sets the desired connectionPort name, default is 0:
+	set theConnectionPort [lindex [$moduleName connectionPorts] $conPortIndex]
+	# connect:
+	if	{
+		 [$moduleName $theConnectionPort validSource $sourceName] && \
+		 [$moduleName $theConnectionPort source] ne $sourceName
+	}	{
+		$moduleName $theConnectionPort connect $sourceName
+	}
+	
+	return $moduleToReturn
+}
+
 #simple proc for switching between positiv and negative numbers:
 proc ::SharedProcs::switchNumberSigns { args } {
 	set list [list]
@@ -114,7 +140,7 @@ proc ::SharedProcs::rotateObject { object evecPointAxis { degrees 180 } } {
 	eval "$upvObject rotate $upvevecPointAxis $degrees"
 }
 
-# procedure which connects $this to modules in the pool when invoked.
+# procedure which connects $this to all modules in the pool when invoked.
 # default is HxSurface when no argument
 # module must implement "allEmptyConPorts" list, which holds all names of the not connected connectionPorts!!! 
 proc ::SharedProcs::autoConnectToAll { {moduleclass HxSurface} } {
@@ -139,55 +165,56 @@ proc ::SharedProcs::autoConnectToAll { {moduleclass HxSurface} } {
 proc ::SharedProcs::extractFromSpreadsheet { spreadObj } {
 	
 	array set spreadExtractArray {}
+	set theNumRows [$spreadObj getNumRows]
 	#put volume in array:
-	for { set i 0 } { $i < [$spreadObj getNumRows]  } { incr i } {
+	for { set i 0 } { $i < $theNumRows  } { incr i } {
 		set spreadExtractArray([$spreadObj getValue 0 $i],v) [list [$spreadObj getValue 1 $i]]
 	}
 	#put mass in array:
-	for { set i 0 } { $i < [$spreadObj getNumRows]  } { incr i } {
+	for { set i 0 } { $i < $theNumRows  } { incr i } {
 		set spreadExtractArray([$spreadObj getValue 0 $i],m) [list [$spreadObj getValue 32 $i]]
 	}
 	#put area in array:
-	for { set i 0 } { $i < [$spreadObj getNumRows]  } { incr i } {
+	for { set i 0 } { $i < $theNumRows  } { incr i } {
 		set spreadExtractArray([$spreadObj getValue 0 $i],a) [list [$spreadObj getValue 33 $i]]
 	}
 	#put center point x, y, z in array:
-	for { set i 0 } { $i < [$spreadObj getNumRows]  } { incr i } {
+	for { set i 0 } { $i < $theNumRows  } { incr i } {
 		set spreadExtractArray([$spreadObj getValue 0 $i],c) [list	[$spreadObj getValue 2 $i]\
 																	[$spreadObj getValue 3 $i]\
 																	[$spreadObj getValue 4 $i]\
 																	]
 	}
 	#put eigenvalues x, y, z in array:
-	for { set i 0 } { $i < [$spreadObj getNumRows]  } { incr i } {
+	for { set i 0 } { $i < $theNumRows  } { incr i } {
 		set spreadExtractArray([$spreadObj getValue 0 $i],evalue) [list	[$spreadObj getValue 8 $i]\
 																		[$spreadObj getValue 9 $i]\
 																		[$spreadObj getValue 10 $i]\
 																		]
 	}
 	#put eigenvector 1x, 1y, 1z in array:
-	for { set i 0 } { $i < [$spreadObj getNumRows]  } { incr i } {
+	for { set i 0 } { $i < $theNumRows  } { incr i } {
 		set spreadExtractArray([$spreadObj getValue 0 $i],evector1) [list	[$spreadObj getValue 11 $i]\
 																			[$spreadObj getValue 12 $i]\
 																			[$spreadObj getValue 13 $i]\
 																			]
 	}
 	#put eigenvector 2x, 2y, 2z in array:
-	for { set i 0 } { $i < [$spreadObj getNumRows]  } { incr i } {
+	for { set i 0 } { $i < $theNumRows  } { incr i } {
 		set spreadExtractArray([$spreadObj getValue 0 $i],evector2) [list	[$spreadObj getValue 14 $i]\
 																			[$spreadObj getValue 15 $i]\
 																			[$spreadObj getValue 16 $i]\
 																			]
 	}
 	#put eigenvector 3x, 3y, 3z in array:
-	for { set i 0 } { $i < [$spreadObj getNumRows]  } { incr i } {
+	for { set i 0 } { $i < $theNumRows  } { incr i } {
 		set spreadExtractArray([$spreadObj getValue 0 $i],evector3) [list	[$spreadObj getValue 17 $i]\
 																			[$spreadObj getValue 18 $i]\
 																			[$spreadObj getValue 19 $i]\
 																			]
 	}
 	#put moments of inertia ixx, Iyy, Izz in array:
-	for { set i 0 } { $i < [$spreadObj getNumRows]  } { incr i } {
+	for { set i 0 } { $i < $theNumRows  } { incr i } {
 		set spreadExtractArray([$spreadObj getValue 0 $i],moinertia) [list	[$spreadObj getValue 28 $i]\
 																			[$spreadObj getValue 29 $i]\
 																			[$spreadObj getValue 30 $i]\

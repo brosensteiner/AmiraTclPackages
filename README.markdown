@@ -4,7 +4,7 @@ In order to get my Amira scipt-objects to work you must install this tcl package
 
 #Installation
 
-Probably the easiest way is to append the package path to the "auto\_path" variable, so it is possible to have a costum file path. To do this execute the following steps:
+Probably the easiest way is to append the package path to Tcl´s auto\_path variable, so it is possible to have a costum file path. To do this execute the following steps:
 
 - open the Amira.init file ($AMIRA\_ROOT/share/resources/Amira/Amira.init)
 - add the following line (does´t matter where): lappend auto\_path "here stands the path to the package file"
