@@ -97,10 +97,11 @@ proc ::SharedProcs::createModuleAndConnectIfOkToSource { moduleType moduleName s
 	set theConnectionPort [lindex [$moduleName connectionPorts] $conPortIndex]
 	# connect:
 	if	{
-		 [$moduleName $theConnectionPort validSource $sourceName] && \
-		 [$moduleName $theConnectionPort source] ne $sourceName
+		 [$moduleName $theConnectionPort validSource $sourceName]
 	}	{
 		$moduleName $theConnectionPort connect $sourceName
+	} else {
+		say "tried to connect \"$moduleName\" to \"$sourceName\", but connection is not valid source"
 	}
 	
 	return $moduleToReturn
@@ -222,3 +223,25 @@ proc ::SharedProcs::extractFromSpreadsheet { spreadObj } {
 	}
 	return [array get spreadExtractArray]
 }
+
+#proc which tests a simple topology invariant criterion:
+proc ::SharedProcs::testTopology { surfaceList } {
+
+	upvar $surfaceList surfaceListUpd
+	foreach surface $surfaceListUpd {
+		array set tempArray [$surface getTopology]
+		set answer "(Euler characteristic: $tempArray(Euler-Poincare:), Genus: $tempArray(Genus:))"
+		if { $tempArray(Euler-Poincare:) != [expr 2 - 2*$tempArray(Genus:)] || \
+			 $tempArray(Genus:) < 0
+		   } {
+			say "!!! there is something wrong with $surface !!!"
+			echo "maybe polygon islands or not closed ... $answer"
+		} else {
+			say "$surface: Toplology OK $answer"
+		}
+	}
+}
+
+
+
+
